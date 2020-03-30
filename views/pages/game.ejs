@@ -25,14 +25,16 @@
       const CANVAS_WIDTH = 200;
       const CANVAS_HEIGHT = 200;
       const SNAKE_SIZE = 20;
+      const SNAKE_COLOR = '#00FF00';
       // Maybe try keeping an old and new board and only updating differences? instead of wiping and replacing?
       var board;
       const canvas = document.getElementById('canvas');
       canvas.width = CANVAS_WIDTH;
       canvas.height = CANVAS_HEIGHT;
       const ctx = canvas.getContext('2d');
+      var connected = false;
 
-      socket.emit('new player', USERNAME);
+      var lastTime = Date.now();
 
       document.addEventListener('keydown', event => {
         switch (event.keyCode) {
@@ -62,7 +64,7 @@
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
           for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
-            // dont do if board[row][col] is #FFFFFF ?
+            // dont do if old board[row][col] is already the same ?
             ctx.fillStyle = board[row][col];
             ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
           }
@@ -71,8 +73,21 @@
 
 
       socket.on('new board', newBoard => {
+        if (!connected) {
+          socket.emit('new player', USERNAME);
+          connected = true;
+        }
+        console.log('Took ' + (Date.now() - lastTime).toString() + ' milliseconds.');
+        lastTime = Date.now();
         board = newBoard;
         render();
+        console.log('new board received');
+      });
+
+      socket.on('initial position', pos => {
+        ctx.fillStyle = SNAKE_COLOR;
+        ctx.fillRect(SNAKE_SIZE * pos.x, SNAKE_SIZE * pos.y, SNAKE_SIZE, SNAKE_SIZE);
+        console.log('initial position received');
       });
 
     </script>
