@@ -100,7 +100,8 @@ io.on('connection', (socket) => {
       username: username,
       length: 1,
       body: [initialPos],
-      dir: initialDir
+      newDir: initialDir,
+      prevDir: initialDir
     };
     socket.emit('initial position', initialPos);
     numPlayers++;
@@ -115,10 +116,8 @@ io.on('connection', (socket) => {
 
   socket.on('change direction', newDirection => {
     console.log('Received direction change: ' + newDirection);
-    // console.log('Test: ' + (players[socket.id].length == 1).toString() + ' ' + (players[socket.id].dir != newDirection).toString());
-    // console.log(players[socket.id].dir);
-    if (players[socket.id].length == 1 || (players[socket.id].dir != newDirection && players[socket.id].dir != opposite[newDirection])) {
-      players[socket.id].dir = newDirection;
+    if (players[socket.id].length == 1 || (players[socket.id].prevDir != newDirection && players[socket.id].prevDir != opposite[newDirection])) {
+      players[socket.id].newDir = newDirection;
     } else {
       console.log('Direction change denied: ' + newDirection);
     }
@@ -175,7 +174,7 @@ function updateBoard() {
       let tempPlayer = tempPlayers[id];
       let body = players[id].body;
       let head = players[id].length;
-      switch (tempPlayer.dir) {
+      switch (tempPlayer.newDir) {
         case 'up':
           body.push({x: body[head - 1].x, y: body[head - 1].y - 1});
           break;
@@ -232,7 +231,7 @@ function updateBoard() {
   }
   // At this point all players are legal---------------------------------------
   // This is updateBoard():
-  // set tail of each remaining array in board to white, delete last element
+  // set tail of each remaining array in board to board color, delete last element
   for (let id in players) {
     let headPos = players[id].body[players[id].length];
     if (board[headPos.y][headPos.x] == APPLE_COLOR) {
@@ -244,10 +243,11 @@ function updateBoard() {
       players[id].body.shift();
     }
   }
-  // set head of each array in board to snake color
+  // set head of each array in board to snake color AND update their direction
   for (let id in players) {
     let headPos = players[id].body[players[id].length - 1];
     board[headPos.y][headPos.x] = SNAKE_COLOR;
+    players[id].prevDir = tempPlayers[id].newDir;
   }
   // If an apple was just eaten, generate a new apple
   if (needNewApple)
