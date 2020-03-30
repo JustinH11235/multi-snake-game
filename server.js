@@ -144,6 +144,7 @@ function newApple(options) {
     endGame();
   var pos = options[randInt(0, options.length)];
   if (board[pos.y][pos.x] == BOARD_COLOR) {
+    console.log('Apple:');
     console.log(pos);
     board[pos.y][pos.x] = APPLE_COLOR;
     return pos;
