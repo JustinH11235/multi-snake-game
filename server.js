@@ -259,4 +259,4 @@ function updateBoard() {
 setInterval(() => {
   updateBoard();
   io.emit('new board', board);
-}, 1000 / 1/*60*/);
+}, 1000 / 2);
