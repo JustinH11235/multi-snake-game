@@ -34,25 +34,21 @@
       const ctx = canvas.getContext('2d');
       var connected = false;
 
-      var lastTime = Date.now();
+      //var lastTime = Date.now();
 
       document.addEventListener('keydown', event => {
         switch (event.keyCode) {
           case 87: // W
             socket.emit('change direction', 'up');
-            console.log('changed to up');
             break;
           case 65: // A
             socket.emit('change direction', 'left');
-            console.log('changed to left');
             break;
           case 83: // S
             socket.emit('change direction', 'down');
-            console.log('changed to down');
             break;
           case 68: // D
             socket.emit('change direction', 'right');
-            console.log('changed to right');
             break;
           default:
             break;
@@ -77,17 +73,21 @@
           socket.emit('new player', USERNAME);
           connected = true;
         }
-        console.log('Took ' + (Date.now() - lastTime).toString() + ' milliseconds.');
-        lastTime = Date.now();
+        //console.log('Took ' + (Date.now() - lastTime).toString() + ' milliseconds.');
+        //lastTime = Date.now();
         board = newBoard;
         render();
-        console.log('new board received');
       });
 
       socket.on('initial position', pos => {
         ctx.fillStyle = SNAKE_COLOR;
         ctx.fillRect(SNAKE_SIZE * pos.x, SNAKE_SIZE * pos.y, SNAKE_SIZE, SNAKE_SIZE);
-        console.log('initial position received');
+        console.log('Initial position received');
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Player Lost...Redirecting');
+        setTimeout(() => { window.location.replace('/') }, 2000);
       });
 
     </script>
