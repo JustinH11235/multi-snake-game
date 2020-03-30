@@ -85,13 +85,16 @@ io.on('connection', (socket) => {
     // Get random starting position that isn't occupied
     let initialPos = newPlayerPos(options);
     // Find best starting direction, if no best, set to right
-    if (initialPos.x < WIDTH - 1 && board[initialPos.y][initialPos.x + 1] in [BOARD_COLOR, APPLE_COLOR]) {
+    let leftness = WIDTH / 2 - initialPos.x;
+    let upness = HEIGHT / 2 - initialPos.y;
+    
+    if (initialPos.x < WIDTH - 1 && board[initialPos.y][initialPos.x + 1] != SNAKE_COLOR) {
       var initialDir = 'right';
-    } else if (initialPos.y > 0 && board[initialPos.y - 1][initialPos.x] in [BOARD_COLOR, APPLE_COLOR]) {
+    } else if (initialPos.y > 0 && board[initialPos.y - 1][initialPos.x] != SNAKE_COLOR) {
       var initialDir = 'up';
-    } else if (initialPos.y < HEIGHT - 1 && board[initialPos.y + 1][initialPos.x] in [BOARD_COLOR, APPLE_COLOR]) {
+    } else if (initialPos.y < HEIGHT - 1 && board[initialPos.y + 1][initialPos.x] != SNAKE_COLOR) {
       var initialDir = 'down';
-    } else if (initialPos.x > 0 && board[initialPos.y][initialPos.x - 1] in [BOARD_COLOR, APPLE_COLOR]) {
+    } else if (initialPos.x > 0 && board[initialPos.y][initialPos.x - 1] != SNAKE_COLOR) {
       var initialDir = 'left';
     } else {
       var initialDir = 'right';
