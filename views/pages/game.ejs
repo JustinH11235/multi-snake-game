@@ -34,7 +34,7 @@
       const ctx = canvas.getContext('2d');
       var connected = false;
 
-      //var lastTime = Date.now();
+      var lastTime = Date.now();
 
       document.addEventListener('keydown', event => {
         switch (event.keyCode) {
@@ -73,8 +73,8 @@
           socket.emit('new player', USERNAME);
           connected = true;
         }
-        //console.log('Took ' + (Date.now() - lastTime).toString() + ' milliseconds.');
-        //lastTime = Date.now();
+        console.log('Took ' + (Date.now() - lastTime).toString() + ' milliseconds.');
+        lastTime = Date.now();
         board = newBoard;
         render();
       });
