@@ -14,10 +14,12 @@ const io = socketIO(http);
 
 // Setup bodyParser
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.urlencoded({extended: true}))
 
 // Use ejs as template engine
 app.set('view engine', 'ejs');
+// Use static folder for .js files
+app.use('/static', express.static(__dirname + '/static'));
 
 // Routing Handlers
 app.get('/', (req, res) => res.render('pages/index'));
@@ -28,18 +30,18 @@ app.post('/', (req, res) => {
   });
 });
 
-app.get('/test', (req, res) => res.send('Hello World!'));
-
 // Player list
 var players = {};
 var numPlayers = 0;
 var board = [];
-const CANVAS_WIDTH = 200;
-const CANVAS_HEIGHT = 200;
+const CANVAS_WIDTH = 600;
+const CANVAS_HEIGHT = 400;
 const SNAKE_SIZE = 20;
 const WIDTH = CANVAS_WIDTH / SNAKE_SIZE;
 const HEIGHT = CANVAS_HEIGHT / SNAKE_SIZE;
-const SNAKE_COLOR = '#00FF00';// CHANGE!!!
+const SNAKE_COLORS = ['#00FF00', '#0000FF', '#00FFFF', '#FF00FF', '#C0C0C0', '#800000', '#800080', '#808000', '#8B4513'];
+var curColorIndex = 0;
+const SNAKE_COLORS_LENGTH = SNAKE_COLORS.length;
 const APPLE_COLOR = '#FF0000';
 const BOARD_COLOR = '#FFFFFF';
 for (let i = 0; i < HEIGHT; i++) {
@@ -82,19 +84,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('new player', username => {
+    let nextColor = SNAKE_COLORS[curColorIndex++ % SNAKE_COLORS_LENGTH];
     // Get random starting position that isn't occupied
-    let initialPos = newPlayerPos(options);
+    let initialPos = newPlayerPos(options, nextColor);
     // Find best starting direction, if no best, set to right
-    let leftness = WIDTH / 2 - initialPos.x;
-    let upness = HEIGHT / 2 - initialPos.y;
-    
-    if (initialPos.x < WIDTH - 1 && board[initialPos.y][initialPos.x + 1] != SNAKE_COLOR) {
+    if (initialPos.x < WIDTH - 1 && board[initialPos.y][initialPos.x + 1] in [BOARD_COLOR, APPLE_COLOR]) {
       var initialDir = 'right';
-    } else if (initialPos.y > 0 && board[initialPos.y - 1][initialPos.x] != SNAKE_COLOR) {
+    } else if (initialPos.y > 0 && board[initialPos.y - 1][initialPos.x] in [BOARD_COLOR, APPLE_COLOR]) {
       var initialDir = 'up';
-    } else if (initialPos.y < HEIGHT - 1 && board[initialPos.y + 1][initialPos.x] != SNAKE_COLOR) {
+    } else if (initialPos.y < HEIGHT - 1 && board[initialPos.y + 1][initialPos.x] in [BOARD_COLOR, APPLE_COLOR]) {
       var initialDir = 'down';
-    } else if (initialPos.x > 0 && board[initialPos.y][initialPos.x - 1] != SNAKE_COLOR) {
+    } else if (initialPos.x > 0 && board[initialPos.y][initialPos.x - 1] in [BOARD_COLOR, APPLE_COLOR]) {
       var initialDir = 'left';
     } else {
       var initialDir = 'right';
@@ -104,9 +104,10 @@ io.on('connection', (socket) => {
       length: 1,
       body: [initialPos],
       newDir: initialDir,
-      prevDir: initialDir
+      prevDir: initialDir,
+      color: nextColor
     };
-    socket.emit('initial position', initialPos);
+    socket.emit('initial position', {pos: initialPos, color: nextColor});
     numPlayers++;
     console.log('New player: ' + socket.id);
     console.log(players[socket.id]);
@@ -155,12 +156,12 @@ function newApple(options) {
 }
 
 
-function newPlayerPos(options) {
+function newPlayerPos(options, color) {
   if (options.length == 0)
     endGame();
   var pos = options[randInt(0, options.length)];
   if (board[pos.y][pos.x] == BOARD_COLOR) {
-    board[pos.y][pos.x] = SNAKE_COLOR;
+    board[pos.y][pos.x] = color;
     return pos;
   }
   return newPlayerPos(options.filter((value, index, arr) => value != pos));
@@ -249,7 +250,7 @@ function updateBoard() {
   // set head of each array in board to snake color AND update their direction
   for (let id in players) {
     let headPos = players[id].body[players[id].length - 1];
-    board[headPos.y][headPos.x] = SNAKE_COLOR;
+    board[headPos.y][headPos.x] = players[id].color;
     players[id].prevDir = tempPlayers[id].newDir;
   }
   // If an apple was just eaten, generate a new apple
@@ -262,4 +263,4 @@ function updateBoard() {
 setInterval(() => {
   updateBoard();
   io.emit('new board', board);
-}, 1000 / 2);
+}, 1000 / 5);
