@@ -146,6 +146,7 @@ socket.on('scoreboard update', data => {
   for (let player = 0, len = data.length; player < len; player++) {
     let score = document.createElement("li");
     score.classList.add("list-group-item");
+    score.style.color = data[player].color;
     score.innerHTML = '<h5>' + data[player].username.toString() + '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' + data[player].score.toString() + '</h5>';
     scoreboard.appendChild(score);
   }
@@ -153,5 +154,5 @@ socket.on('scoreboard update', data => {
 
 socket.on('disconnect', () => {
   console.log('Player Lost...Redirecting');
-  setTimeout(() => { window.location.replace('/') }, 2000);
+  //setTimeout(() => { window.location.replace('/') }, 2000);
 });

@@ -1,7 +1,7 @@
 let username = document.getElementById('username')
 let submit = document.getElementById('submit')
 function checkInputs() {
-    if (username.value == '') {
+    if (!username.value || !username.value.trim()) {
         submit.disabled = true;
     } else {
         submit.disabled = false;

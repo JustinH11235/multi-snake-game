@@ -111,16 +111,9 @@ io.on('connection', (socket) => {
     socket.emit('initial position', {pos: initialPos, color: nextColor});
     numPlayers++;
     console.log('New player: ' + socket.id);
-    // console.log(players[socket.id]);
-
-    // console.log('All connected players:');
-    // for (let id in players)
-    //   console.log(players[id]);
-    // console.log();
   });
 
   socket.on('change direction', nextDirection => {
-    // console.log('Received direction change: ' + nextDirection);
     if (players[socket.id].length == 1 || (players[socket.id].curDir != nextDirection && players[socket.id].curDir != opposite[nextDirection])) {
       players[socket.id].nextDir = nextDirection;
     } else {
@@ -274,7 +267,7 @@ setInterval(() => {
     let scoreboard = [];
     let counter = 0;
     for (let id in players) {
-      scoreboard.push({username: players[id].username, score: players[id].length})
+      scoreboard.push({username: players[id].username, score: players[id].length, color: players[id].color})
       counter++;
       if (counter >= 6)
         break;
