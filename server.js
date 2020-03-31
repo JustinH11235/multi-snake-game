@@ -57,6 +57,7 @@ for (let i = 0; i < HEIGHT; i++)
 // Creates new apple position w/ side effect of rendering it on board
 var apple = newApple(options); /// {x: _, y: _}
 var needNewApple = false;
+var updateScoreboard = false;
 
 const opposite = {'up': 'down', 'left': 'right', 'down': 'up', 'right': 'left'};
 
@@ -77,10 +78,10 @@ io.on('connection', (socket) => {
       numPlayers--;
     }
     console.log('Client disconnected');
-    console.log('All connected players:');
-    for (let id in players)
-      console.log(players[id]);
-    console.log();
+    // console.log('All connected players:');
+    // for (let id in players)
+    //   console.log(players[id]);
+    // console.log();
   });
 
   socket.on('new player', username => {
@@ -103,27 +104,27 @@ io.on('connection', (socket) => {
       username: username,
       length: 1,
       body: [initialPos],
-      newDir: initialDir,
-      prevDir: initialDir,
+      nextDir: initialDir,
+      curDir: initialDir,
       color: nextColor
     };
     socket.emit('initial position', {pos: initialPos, color: nextColor});
     numPlayers++;
     console.log('New player: ' + socket.id);
-    console.log(players[socket.id]);
+    // console.log(players[socket.id]);
 
-    console.log('All connected players:');
-    for (let id in players)
-      console.log(players[id]);
-    console.log();
+    // console.log('All connected players:');
+    // for (let id in players)
+    //   console.log(players[id]);
+    // console.log();
   });
 
-  socket.on('change direction', newDirection => {
-    console.log('Received direction change: ' + newDirection);
-    if (players[socket.id].length == 1 || (players[socket.id].prevDir != newDirection && players[socket.id].prevDir != opposite[newDirection])) {
-      players[socket.id].newDir = newDirection;
+  socket.on('change direction', nextDirection => {
+    // console.log('Received direction change: ' + nextDirection);
+    if (players[socket.id].length == 1 || (players[socket.id].curDir != nextDirection && players[socket.id].curDir != opposite[nextDirection])) {
+      players[socket.id].nextDir = nextDirection;
     } else {
-      console.log('Direction change denied: ' + newDirection);
+      console.log('Direction change denied: ' + nextDirection);
     }
   });
 
@@ -143,28 +144,32 @@ function randInt(start, end) {
 
 
 function newApple(options) {
-  if (options.length == 0)
-    endGame();
-  var pos = options[randInt(0, options.length)];
-  if (board[pos.y][pos.x] == BOARD_COLOR) {
-    console.log('Apple:');
-    console.log(pos);
-    board[pos.y][pos.x] = APPLE_COLOR;
-    return pos;
+  for (let len = options.length; len > 0; len--) {
+    let ind = randInt(0, len);
+    let pos = options[ind];
+    if (board[pos.y][pos.x] == BOARD_COLOR) {
+      console.log('Apple:');
+      console.log(pos);
+      board[pos.y][pos.x] = APPLE_COLOR;
+      return pos;
+    }
+    options.splice(ind, 1);
   }
-  return newApple(options.filter((value, index, arr) => value != pos));
+  endGame();
 }
 
 
 function newPlayerPos(options, color) {
-  if (options.length == 0)
-    endGame();
-  var pos = options[randInt(0, options.length)];
-  if (board[pos.y][pos.x] == BOARD_COLOR) {
-    board[pos.y][pos.x] = color;
-    return pos;
+  for (let len = options.length; len > 0; len--) {
+    let ind = randInt(0, len);
+    let pos = options[ind];
+    if (board[pos.y][pos.x] == BOARD_COLOR) {
+      board[pos.y][pos.x] = color;
+      return pos;
+    }
+    options.splice(ind, 1);
   }
-  return newPlayerPos(options.filter((value, index, arr) => value != pos));
+  endGame();
 }
 
 
@@ -178,7 +183,7 @@ function updateBoard() {
       let tempPlayer = tempPlayers[id];
       let body = players[id].body;
       let head = players[id].length;
-      switch (tempPlayer.newDir) {
+      switch (tempPlayer.nextDir) {
         case 'up':
           body.push({x: body[head - 1].x, y: body[head - 1].y - 1});
           break;
@@ -241,6 +246,7 @@ function updateBoard() {
     if (board[headPos.y][headPos.x] == APPLE_COLOR) {
       players[id].length++;
       needNewApple = true;
+      updateScoreboard = true;
     } else {
       let tailPos = players[id].body[0];
       board[tailPos.y][tailPos.x] = BOARD_COLOR;
@@ -251,7 +257,7 @@ function updateBoard() {
   for (let id in players) {
     let headPos = players[id].body[players[id].length - 1];
     board[headPos.y][headPos.x] = players[id].color;
-    players[id].prevDir = tempPlayers[id].newDir;
+    players[id].curDir = tempPlayers[id].nextDir;
   }
   // If an apple was just eaten, generate a new apple
   if (needNewApple)
@@ -260,7 +266,22 @@ function updateBoard() {
 
 }
 
+
 setInterval(() => {
   updateBoard();
   io.emit('new board', board);
+  if (updateScoreboard) {
+    let scoreboard = [];
+    let counter = 0;
+    for (let id in players) {
+      scoreboard.push({username: players[id].username, score: players[id].length})
+      counter++;
+      if (counter >= 6)
+        break;
+    }
+    io.emit('scoreboard update', scoreboard.sort((a, b) => {
+      return b.score - a.score;
+    }))
+    updateScoreboard = false;
+  }
 }, 1000 / 5);

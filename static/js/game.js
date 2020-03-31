@@ -1,5 +1,5 @@
 var socket = io();
-const USERNAME = '<%= username %>';
+const USERNAME = document.getElementById('username').innerHTML;
 const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 400;
 const SNAKE_SIZE = 20;
@@ -86,6 +86,17 @@ socket.on('initial position', data => {
   ctx.fillRect(SNAKE_SIZE * data.pos.x, SNAKE_SIZE * data.pos.y, SNAKE_SIZE, SNAKE_SIZE);
   initialPos = data.pos;
   console.log('Initial position received');
+});
+
+socket.on('scoreboard update', data => {
+  let scoreboard = document.getElementById('scoreboard');
+  scoreboard.innerHTML = '';
+  for (let player = 0, len = data.length; player < len; player++) {
+    let score = document.createElement("li");
+    score.classList.add("list-group-item");
+    score.innerHTML = '<h5>' + data[player].username.toString() + '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' + data[player].score.toString() + '</h5>';
+    scoreboard.appendChild(score);
+  }
 });
 
 socket.on('disconnect', () => {

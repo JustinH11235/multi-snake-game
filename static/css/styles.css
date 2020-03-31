@@ -25,3 +25,11 @@ div.container1 button
   margin-right: -50%;
   transform: translate(-50%, -20%)
 }
+
+ul.list-group.list-group-flush
+{
+  color: #ea433b;
+  width: 45%;
+  margin-left:auto;
+  margin-right:auto;
+}
