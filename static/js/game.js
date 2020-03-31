@@ -153,5 +153,5 @@ socket.on('scoreboard update', data => {
 
 socket.on('disconnect', () => {
   console.log('Player Lost...Redirecting');
-  //setTimeout(() => { window.location.replace('/') }, 2000);
+  setTimeout(() => { window.location.replace('/') }, 2000);
 });

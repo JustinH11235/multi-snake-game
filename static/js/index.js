@@ -13,18 +13,18 @@ function submitForm() {
 }
 
 document.getElementById('submit').onclick = () => {
-  setTimeout("submitForm()", 5000);
+  setTimeout("submitForm()", 3000);
   let pbar = document.getElementById('pbar');
   let pbarStatus = 1;
   var timer = setInterval(() => {
-    pbarStatus *= 1.1;
+    pbarStatus *= 1.15;
     pbar.style.width = pbarStatus.toString() + '%';
-    if (pbarStatus >= 75) {
+    if (pbarStatus >= 80) {
       clearInterval(timer);
     }
   }, 100);
   setInterval(() => {
-    pbarStatus += .9;
+    pbarStatus += 1.43;
     pbar.style.width = pbarStatus.toString() + '%';
     if (pbarStatus >= 100) {
       clearInterval(timer);
