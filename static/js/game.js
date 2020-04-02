@@ -1,17 +1,17 @@
 var socket = io();
 const USERNAME = document.getElementById('username').innerHTML;
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 400;
+const CANVAS_WIDTH = 260;
+const CANVAS_HEIGHT = 260;
 const SNAKE_SIZE = 20;
-const BOARD_COLOR = '#FFFFFF';
-// Maybe try keeping an old and new board and only updating differences? instead of wiping and replacing?
+const WIDTH = CANVAS_WIDTH / SNAKE_SIZE;
+const HEIGHT = CANVAS_HEIGHT / SNAKE_SIZE;
 var oldBoard;
 const canvas = document.getElementById('canvas');
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 const ctx = canvas.getContext('2d');
 
-var initialPos;
+var notJoined = true;
 
 var lastTime = Date.now();
 
@@ -86,44 +86,56 @@ function handleTouchMove(evt) {
 };
 // </Mobile Swipe Handler>
 
+// // Renders unique values according to hex values in board
+// var render = function(board) {
+//   for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
+//     for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
+//       if (board[row][col] != oldBoard[row][col]) {
+//         ctx.fillStyle = board[row][col];
+//         ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
+//       }
+//     }
+//   }
+// }
+//
+// // clears initialPos THEN renders unique values according to hex values in board
+// var secondRender = function(board) {
+//   ctx.fillStyle = oldBoard[initialPos.y][initialPos.x];
+//   ctx.fillRect(SNAKE_SIZE * initialPos.x, SNAKE_SIZE * initialPos.y, SNAKE_SIZE, SNAKE_SIZE);
+//   for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
+//     for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
+//       if (board[row][col] != oldBoard[row][col]) {
+//         ctx.fillStyle = board[row][col];
+//         ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
+//       }
+//     }
+//   }
+//   curRender = render;
+// }
+//
+// // The 1st render fills all values, then 2nd render is called, then normal render
+// var curRender = (board) => {
+//   for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
+//     for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
+//       ctx.fillStyle = board[row][col];
+//       ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
+//     }
+//   }
+//   //socket.emit('new player', USERNAME);
+//   curRender = secondRender;
+// };
+
 // Renders unique values according to hex values in board
-var render = function(board) {
-  for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
-    for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
-      if (board[row][col] != oldBoard[row][col]) {
-        ctx.fillStyle = board[row][col];
-        ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
-      }
-    }
-  }
-}
-
-// clears initialPos THEN renders unique values according to hex values in board
-var secondRender = function(board) {
-  ctx.fillStyle = BOARD_COLOR;
-  ctx.fillRect(SNAKE_SIZE * initialPos.x, SNAKE_SIZE * initialPos.y, SNAKE_SIZE, SNAKE_SIZE);
-  for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
-    for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
-      if (board[row][col] != oldBoard[row][col]) {
-        ctx.fillStyle = board[row][col];
-        ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
-      }
-    }
-  }
-  curRender = render;
-}
-
-// The 1st render fills all values, then 2nd render is called, then normal render
 var curRender = (board) => {
-  for (let row = 0, height = CANVAS_HEIGHT / SNAKE_SIZE; row < height; row++) {
-    for (let col = 0, width = CANVAS_WIDTH / SNAKE_SIZE; col < width; col++) {
-      ctx.fillStyle = board[row][col];
-      ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
+  for (let row = 0; row < HEIGHT; row++) {
+    for (let col = 0; col < WIDTH; col++) {
+      //if (board[row][col] != oldBoard[row][col]) {
+        ctx.fillStyle = board[row][col];
+        ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
+      //}
     }
   }
-  socket.emit('new player', USERNAME);
-  curRender = secondRender;
-};
+}
 
 socket.on('new board', newBoard => {
   console.log('Tick took ' + (Date.now() - lastTime).toString() + ' milliseconds.');
@@ -133,11 +145,28 @@ socket.on('new board', newBoard => {
   oldBoard = newBoard;
 });
 
-socket.on('initial position', data => {
-  ctx.fillStyle = data.color;
-  ctx.fillRect(SNAKE_SIZE * data.pos.x, SNAKE_SIZE * data.pos.y, SNAKE_SIZE, SNAKE_SIZE);
-  initialPos = data.pos;
-  console.log('Initial position received');
+socket.on('board sent', () => {
+  if (notJoined) {
+    socket.emit('new player', USERNAME);
+    notJoined = false;
+  }
+});
+
+socket.on('initial board', newBoard => {
+  for (let i = 0; i < newBoard.length; i++) {
+    console.log(newBoard[i]);
+  }
+  for (let row = 0, height = HEIGHT; row < height; row++) {
+    for (let col = 0, width = WIDTH; col < width; col++) {
+      ctx.fillStyle = newBoard[row][col];
+      ctx.fillRect(SNAKE_SIZE * col, SNAKE_SIZE * row, SNAKE_SIZE, SNAKE_SIZE);
+    }
+  }
+  oldBoard = newBoard;
+  // ctx.fillStyle = data.color;
+  // ctx.fillRect(SNAKE_SIZE * data.pos.x, SNAKE_SIZE * data.pos.y, SNAKE_SIZE, SNAKE_SIZE);
+  // initialPos = data.pos;
+  console.log('Initial board received');
 });
 
 socket.on('scoreboard update', data => {
@@ -154,5 +183,5 @@ socket.on('scoreboard update', data => {
 
 socket.on('disconnect', () => {
   console.log('Player Lost...Redirecting');
-  setTimeout(() => { window.location.replace('/') }, 2000);
+  //setTimeout(() => { window.location.replace('/') }, 2000);
 });
