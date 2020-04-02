@@ -192,7 +192,7 @@ function newApple() {
     let ind = randInt(0, len);
     let pos = options[ind];
     if (BOARD_COLORS.indexOf(board[pos.y][pos.x]) != -1) {
-      console.log('Apple:');
+      console.log('New Apple:');
       console.log(pos);
       board[pos.y][pos.x] = APPLE_COLOR;
       return pos;
@@ -292,7 +292,7 @@ function updateBoard() {
     let headPos = players[id].body[players[id].length];
     if (board[headPos.y][headPos.x] == APPLE_COLOR) {
       players[id].length++;
-      apples.splice(apples.indeOf({x: headPos.x, y: headPos.y}), 1);
+      apples.splice(apples.indexOf({x: headPos.x, y: headPos.y}), 1);
       numApplesNeeded++;
       updateScoreboard = true;
     } else {
@@ -304,7 +304,6 @@ function updateBoard() {
   // set head of each array in board to snake color AND update their direction
   for (let id in players) {
     let headPos = players[id].body[players[id].length - 1];
-    console.log(players[id].color);
     board[headPos.y][headPos.x] = players[id].color;
     players[id].curDir = tempPlayers[id].nextDir;
   }
@@ -318,7 +317,7 @@ function updateBoard() {
 setInterval(() => {
   updateBoard();
 
-  for (let id in players) { // 9 x 9
+  for (let id in players) {
     let pos = players[id].body[players[id].length - 1];
     let newBoard = JSON.parse(JSON.stringify(blackBoard));
     for (let i = pos.y - CLIENT_YRANGE; i <= pos.y + CLIENT_YRANGE; i++) {
