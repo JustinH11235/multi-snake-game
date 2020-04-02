@@ -45,11 +45,11 @@ const CLIENT_WIDTH = 13;
 const CLIENT_HEIGHT = 13;
 const CLIENT_XRANGE = (CLIENT_WIDTH - 1) / 2;
 const CLIENT_YRANGE = (CLIENT_HEIGHT - 1) / 2;
-const NUM_APPLES = 3;
 const SNAKE_COLORS = ['#00FF00', '#0000FF', '#00FFFF', '#FF00FF', '#800000', '#800080', '#808000', '#8B4513'];
 var curColorIndex = 0;
 const SNAKE_COLORS_LENGTH = SNAKE_COLORS.length;
-const APPLE_COLOR = '#FF0000';
+const NUM_APPLES = 3;
+const APPLE_COLORS = ['#FF0000', '#FE0000'];
 const BOARD_COLORS = ['#FFFFFF', '#F9F9F9'];
 const P1 = [BOARD_COLORS[0], BOARD_COLORS[0], BOARD_COLORS[1], BOARD_COLORS[1], BOARD_COLORS[1]];
 const P2 = [BOARD_COLORS[0], BOARD_COLORS[0], BOARD_COLORS[1], BOARD_COLORS[0], BOARD_COLORS[1]];
@@ -68,8 +68,6 @@ for (let i = 0; i < HEIGHT; i++) {
     for (let j = 0; j < WIDTH; j++)
       blankBoard[i][j] = P2[j % 5];
   }
-  // for (let j = 0; j < WIDTH; j++)
-  //   blankBoard[i][j] = BOARD_COLORS[(j + i) % 2];
 }
 // Create large checkered board as starting point of game board
 for (let i = 0; i < HEIGHT; i++) {
@@ -98,7 +96,7 @@ const baseOptions = [];
 for (let i = 0; i < HEIGHT; i++)
   for (let j = 0; j < WIDTH; j++)
     baseOptions.push({x: j, y: i});
-// Creates new apple position w/ side effect of rendering it on board
+// Creates new apple positions w/ side effect of rendering them on board
 var apples = [];
 for (let i = 0; i < NUM_APPLES; i++)
   apples.push(newApple());
@@ -131,13 +129,13 @@ io.on('connection', (socket) => {
     // Get random starting position that isn't occupied
     let initialPos = newPlayerPos(nextColor);
     // Find best starting direction, if no best, set to right
-    if (initialPos.x < WIDTH - 1 && BOARD_COLORS.indexOf(board[initialPos.y][initialPos.x + 1]) != -1 || board[initialPos.y][initialPos.x + 1] == APPLE_COLOR) {
+    if (initialPos.x < WIDTH - 1 && BOARD_COLORS.indexOf(board[initialPos.y][initialPos.x + 1]) != -1 || APPLE_COLORS.indexOf(board[initialPos.y][initialPos.x + 1]) != -1) {
       var initialDir = 'right';
-    } else if (initialPos.y > 0 && BOARD_COLORS.indexOf(board[initialPos.y - 1][initialPos.x]) != -1 || board[initialPos.y][initialPos.x + 1] == APPLE_COLOR) {
+    } else if (initialPos.y > 0 && BOARD_COLORS.indexOf(board[initialPos.y - 1][initialPos.x]) != -1 || APPLE_COLORS.indexOf(board[initialPos.y][initialPos.x + 1]) != -1) {
       var initialDir = 'up';
-    } else if (initialPos.y < HEIGHT - 1 && BOARD_COLORS.indexOf(board[initialPos.y + 1][initialPos.x]) != -1 || board[initialPos.y][initialPos.x + 1] == APPLE_COLOR) {
+    } else if (initialPos.y < HEIGHT - 1 && BOARD_COLORS.indexOf(board[initialPos.y + 1][initialPos.x]) != -1 || APPLE_COLORS.indexOf(board[initialPos.y][initialPos.x + 1]) != -1) {
       var initialDir = 'down';
-    } else if (initialPos.x > 0 && BOARD_COLORS.indexOf(board[initialPos.y][initialPos.x - 1]) != -1 || board[initialPos.y][initialPos.x + 1] == APPLE_COLOR) {
+    } else if (initialPos.x > 0 && BOARD_COLORS.indexOf(board[initialPos.y][initialPos.x - 1]) != -1 || APPLE_COLORS.indexOf(board[initialPos.y][initialPos.x + 1]) != -1) {
       var initialDir = 'left';
     } else {
       var initialDir = 'right';
@@ -181,6 +179,21 @@ function endGame() {
 }
 
 
+function killPlayer(id, msg) {
+  let body = players[id].body;
+  for (let part = 0; part < players[id].length; part++) {
+    if (part % 4 == 3)
+      board[body[part].y][body[part].x] = APPLE_COLORS[1];
+    else
+      board[body[part].y][body[part].x] = blankBoard[body[part].y][body[part].x];
+  }
+  console.log(players[id].username + ' LOST (' + msg + ')');
+  delete players[id];
+  io.sockets.connected[id].disconnect(true);
+  numPlayers--;
+}
+
+
 function randInt(start, end) {
   return start + Math.floor(Math.random() * (end - start));
 }
@@ -194,7 +207,7 @@ function newApple() {
     if (BOARD_COLORS.indexOf(board[pos.y][pos.x]) != -1) {
       console.log('New Apple:');
       console.log(pos);
-      board[pos.y][pos.x] = APPLE_COLOR;
+      board[pos.y][pos.x] = APPLE_COLORS[0];
       return pos;
     }
     options.splice(ind, 1);
@@ -247,15 +260,8 @@ function updateBoard() {
           break;
       }
       // Logic for wall collisions - If head hit a wall, remove player, ignore head
-      if (body[head].x < 0 || body[head].x >= WIDTH || body[head].y < 0 || body[head].y >= HEIGHT) {
-        for (let part = 0; part < head; part++) {
-          board[body[part].y][body[part].x] = blankBoard[body[part].y][body[part].x];
-        }
-        console.log(players[id].username + ' LOST (Hit Wall)');
-        delete players[id];
-        numPlayers--;
-        io.sockets.connected[id].disconnect(true);
-      }
+      if (body[head].x < 0 || body[head].x >= WIDTH || body[head].y < 0 || body[head].y >= HEIGHT)
+        killPlayer(id, 'Hit Wall');
     }
   }
 
@@ -270,14 +276,7 @@ function updateBoard() {
         if (otherID in players) {
           for (let pos = 0; pos < players[otherID].body.length; pos++) {
             if (headX == players[otherID].body[pos].x && headY == players[otherID].body[pos].y && (otherID != id || pos != head)) {
-                let body = players[id].body;
-                for (let part = 0; part < head; part++) {
-                  board[body[part].y][body[part].x] = blankBoard[body[part].y][body[part].x];
-                }
-                console.log(players[id].username + ' LOST (Collided With Snake)');
-                delete players[id];
-                numPlayers--;
-                io.sockets.connected[id].disconnect(true);
+                killPlayer(id, 'Collided With Snake');
                 break;
             }
           }
@@ -290,10 +289,13 @@ function updateBoard() {
   // set tail of each remaining array in board to board color, delete last element
   for (let id in players) {
     let headPos = players[id].body[players[id].length];
-    if (board[headPos.y][headPos.x] == APPLE_COLOR) {
+    if (board[headPos.y][headPos.x] == APPLE_COLORS[0]) {
       players[id].length++;
       apples.splice(apples.indexOf({x: headPos.x, y: headPos.y}), 1);
       numApplesNeeded++;
+      updateScoreboard = true;
+    } else if (board[headPos.y][headPos.x] == APPLE_COLORS[1]){
+      players[id].length++;
       updateScoreboard = true;
     } else {
       let tailPos = players[id].body[0];
@@ -307,7 +309,7 @@ function updateBoard() {
     board[headPos.y][headPos.x] = players[id].color;
     players[id].curDir = tempPlayers[id].nextDir;
   }
-  // If an apple was just eaten, generate a new apple
+  // If at least one original apple was just eaten, generate new apples
   for (; numApplesNeeded > 0; numApplesNeeded--)
     apples.push(newApple());
 
