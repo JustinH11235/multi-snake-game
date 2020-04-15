@@ -35,7 +35,8 @@ document.addEventListener('keydown', event => {
   }
 });
 
-// <Mobile Swipe Handler>
+
+// Start of Mobile Swipe Handler
 document.addEventListener('touchstart', handleTouchStart, false);
 document.addEventListener('touchmove', handleTouchMove, false);
 
@@ -84,7 +85,8 @@ function handleTouchMove(evt) {
   xDown = null;
   yDown = null;
 };
-// </Mobile Swipe Handler>
+// End Mobile Swipe Handler
+
 
 // Renders unique values according to hex values in board
 var curRender = (board) => {
@@ -121,9 +123,6 @@ socket.on('initial board', newBoard => {
     }
   }
   oldBoard = newBoard;
-  // ctx.fillStyle = data.color;
-  // ctx.fillRect(SNAKE_SIZE * data.pos.x, SNAKE_SIZE * data.pos.y, SNAKE_SIZE, SNAKE_SIZE);
-  // initialPos = data.pos;
   console.log('Initial board received');
 });
 
@@ -141,5 +140,5 @@ socket.on('scoreboard update', data => {
 
 socket.on('disconnect', () => {
   console.log('Player Lost...Redirecting');
-  setTimeout(() => { window.location.replace('/') }, 2000);
+  //REPLACEsetTimeout(() => { window.location.replace('/') }, 2000);
 });
