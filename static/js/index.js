@@ -13,7 +13,7 @@ function submitForm() {
 }
 
 document.getElementById('submit').onclick = () => {
-  setTimeout("submitForm()", 0);
+  setTimeout("submitForm()", 3000);
   let pbar = document.getElementById('pbar');
   let pbarStatus = 1;
   var timer = setInterval(() => {

@@ -126,6 +126,8 @@ for (let i = NUM_BOTS; i > 0; i--) {
 
 const opposite = {'up': 'down', 'left': 'right', 'down': 'up', 'right': 'left'};
 
+var highscore = 0;
+
 // Socket.io Handlers
 io.on('connection', (socket) => {
 
@@ -209,12 +211,13 @@ function endGame() {
 function killBot(id, msg) {
   let body = bots[id].body;
   for (let part = 0; part < bots[id].length; part++) {
-    if (part % 4 == 3)
-      board[body[part].y][body[part].x] = APPLE_COLORS[1];
-    else
       board[body[part].y][body[part].x] = blankBoard[body[part].y][body[part].x];
   }
   console.log(bots[id].username + ' LOST (' + msg + ')');
+  if (bots[id].length > highscore) {
+    highscore = bots[id].length;
+    console.log('New highscore: ' + highscore);
+  }
   delete bots[id];
 }
 
@@ -222,7 +225,7 @@ function killBot(id, msg) {
 function killPlayer(id, msg) {
   let body = players[id].body;
   for (let part = 0; part < players[id].length; part++) {
-    if (part % 4 == 3)
+    if (part % 3 == 3)
       board[body[part].y][body[part].x] = APPLE_COLORS[1];
     else
       board[body[part].y][body[part].x] = blankBoard[body[part].y][body[part].x];
@@ -255,8 +258,8 @@ function newApple() {
     let ind = randInt(0, len);
     let pos = options[ind];
     if (BOARD_COLORS.indexOf(board[pos.y][pos.x]) != -1) {
-      console.log('New Apple:');
-      console.log(pos);
+      //console.log('New Apple:');
+      //console.log(pos);
       board[pos.y][pos.x] = APPLE_COLORS[0];
       return pos;
     }
@@ -449,8 +452,7 @@ function updateBots() {
       }
     }
 
-
-    // Temp pathfinding algorithm
+    // Temp naive pathfinding algorithm
     // if (body[head].x < closestApplePos.x) {
     //   body.push({x: body[head].x + 1, y: body[head].y});
     // } else if (body[head].x > closestApplePos.x) {
@@ -462,18 +464,11 @@ function updateBots() {
     // } else {
     //   body.push({x: body[head].x + 1, y: body[head].y});
     // }
-    // end
 
     let headPos = body[bots[id].length];
-    //Don't need other than apple eating!!!
-    // if (headPos.x < 0 || headPos.x >= WIDTH || headPos.y < 0 || headPos.y >= HEIGHT) {
-    //   killBot(id, 'hit wall');
-    // } else if (SNAKE_COLORS.indexOf(board[headPos.y][headPos.x]) != -1) {//CHANGE
-    //   killBot(id, 'hit snake');}
     if (BOARD_COLORS.indexOf(board[headPos.y][headPos.x]) != -1) {
       let tailPos = bots[id].body[0];
       board[tailPos.y][tailPos.x] = blankBoard[tailPos.y][tailPos.x];
-      //board[headPos.y][headPos.x] = bots[id].color;
       bots[id].body.shift();
     } else if (headPos.x == closestApplePos.x && headPos.y == closestApplePos.y) {
       bots[id].length++;
@@ -481,12 +476,10 @@ function updateBots() {
       apples.splice(myIndexOf(apples, headPos), 1);
       apples.push(newApple());
       updateScoreboard = true;
-      //board[headPos.y][headPos.x] = bots[id].color;
     } else if (board[headPos.y][headPos.x] == APPLE_COLORS[1]) {
       bots[id].length++;
       headPos = body[bots[id].length - 1];
       updateScoreboard = true;
-      //board[headPos.y][headPos.x] = bots[id].color;
     }
 
   }
