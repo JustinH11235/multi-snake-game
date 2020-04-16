@@ -47,48 +47,46 @@ const CANVAS_HEIGHT = 1000;
 const SNAKE_SIZE = 20;
 const WIDTH = CANVAS_WIDTH / SNAKE_SIZE;
 const HEIGHT = CANVAS_HEIGHT / SNAKE_SIZE;
-const CLIENT_WIDTH = 13;
-const CLIENT_HEIGHT = 13;
+const CLIENT_WIDTH = 21;
+const CLIENT_HEIGHT = 17;
 const CLIENT_XRANGE = (CLIENT_WIDTH - 1) / 2;
 const CLIENT_YRANGE = (CLIENT_HEIGHT - 1) / 2;
-const SNAKE_COLORS = ['#00FF00', '#0000FF', '#00FFFF', '#FF00FF', '#800000', '#800080', '#808000', '#8B4513'];
+const SNAKE_COLORS = ['#00FF00', '#00FFFF', '#FF00FF', '#800000', '#800080', '#808000', '#8B4513'];
 var curColorIndex = 0;
 const SNAKE_COLORS_LENGTH = SNAKE_COLORS.length;
 const NUM_APPLES = 10;
 const APPLE_COLORS = ['#FF0000', '#FE0000'];
-const BOARD_COLORS = ['#FFFFFF', '#F9F9F9'];
-const P1 = [BOARD_COLORS[0], BOARD_COLORS[0], BOARD_COLORS[1], BOARD_COLORS[1], BOARD_COLORS[1]];
-const P2 = [BOARD_COLORS[0], BOARD_COLORS[0], BOARD_COLORS[1], BOARD_COLORS[0], BOARD_COLORS[1]];
-// Create large checkered board for reference later
+const BOARD_COLORS = ['#FFFFFF', '#F9F9F9', '#003262', '#FDB515'];
+//const P1 = [BOARD_COLORS[0], BOARD_COLORS[0], BOARD_COLORS[1], BOARD_COLORS[1], BOARD_COLORS[1]];
+//const P2 = [BOARD_COLORS[0], BOARD_COLORS[0], BOARD_COLORS[1], BOARD_COLORS[0], BOARD_COLORS[1]];
+const PIXEL_ART = [];
+PIXEL_ART.push('0101010101010101010101');
+PIXEL_ART.push('1010101010101010101010');
+PIXEL_ART.push('0101010133330101010101');1
+PIXEL_ART.push('1010101322223010101330');2
+PIXEL_ART.push('0101013323322301013223');3
+PIXEL_ART.push('1010132230323010132223');4
+PIXEL_ART.push('0101322301030101032023');5
+PIXEL_ART.push('1013222310101010320230');6
+PIXEL_ART.push('0103222301033301320231');7
+PIXEL_ART.push('1032223010322230322310');8
+PIXEL_ART.push('0132223103220231322301');9
+PIXEL_ART.push('1032223013201230322310');10
+PIXEL_ART.push('0132222332210233222301');11
+PIXEL_ART.push('1013222222222232222330');12
+PIXEL_ART.push('0101322332223222322223');13
+PIXEL_ART.push('1010333013331333332230');14
+PIXEL_ART.push('0103222222222222222301');15
+PIXEL_ART.push('1033333333333333333010');16
+const PIXEL_ART_WIDTH = PIXEL_ART[0].length;
+const PIXEL_ART_HEIGHT = PIXEL_ART.length;
+// Create large checkered board for reference later and identical game board
 for (let i = 0; i < HEIGHT; i++) {
   blankBoard[i] = [];
-  if (i % 5 == 0 || i % 5 == 1) {
-    for (let j = 0; j < WIDTH; j++)
-      blankBoard[i][j] = BOARD_COLORS[0];
-  }
-  if (i % 5 == 2 || i % 5 == 4) {
-    for (let j = 0; j < WIDTH; j++)
-      blankBoard[i][j] = P1[j % 5];
-  }
-  if (i % 5 == 3) {
-    for (let j = 0; j < WIDTH; j++)
-      blankBoard[i][j] = P2[j % 5];
-  }
-}
-// Create large checkered board as starting point of game board
-for (let i = 0; i < HEIGHT; i++) {
   board[i] = [];
-  if (i % 5 == 0 || i % 5 == 1) {
-    for (let j = 0; j < WIDTH; j++)
-      board[i][j] = BOARD_COLORS[0];
-  }
-  if (i % 5 == 2 || i % 5 == 4) {
-    for (let j = 0; j < WIDTH; j++)
-      board[i][j] = P1[j % 5];
-  }
-  if (i % 5 == 3) {
-    for (let j = 0; j < WIDTH; j++)
-      board[i][j] = P2[j % 5];
+  for (let j = 0; j < WIDTH; j++) {
+    blankBoard[i][j] = BOARD_COLORS[parseInt(PIXEL_ART[i % PIXEL_ART_HEIGHT].charAt(j % PIXEL_ART_WIDTH))];
+    board[i][j] = BOARD_COLORS[parseInt(PIXEL_ART[i % PIXEL_ART_HEIGHT].charAt(j % PIXEL_ART_WIDTH))];
   }
 }
 // Create black board as base to send to clients
