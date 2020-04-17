@@ -1,8 +1,8 @@
 var socket = io();
 const USERNAME = document.getElementById('username').innerHTML;
-const CANVAS_WIDTH = 21 * 20;
-const CANVAS_HEIGHT = 17 * 20;
 const SNAKE_SIZE = 20;
+const CANVAS_WIDTH = 21 * SNAKE_SIZE;
+const CANVAS_HEIGHT = 17 * SNAKE_SIZE;
 const WIDTH = CANVAS_WIDTH / SNAKE_SIZE;
 const HEIGHT = CANVAS_HEIGHT / SNAKE_SIZE;
 var oldBoard;
